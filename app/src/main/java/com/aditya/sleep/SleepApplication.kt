@@ -47,9 +47,10 @@ class SleepApplication: Application() {
 
     companion object {
         const val CHANNEL_ID = "935740"
+        const val ACTION_SLEEP_DATA = "com.aditya.sleep.ACTION_SLEEP_DATA"
 
         fun createSleepPendingIntent(context: Context?): PendingIntent {
-            val intent = Intent(context, SleepReceiver::class.java)
+            val intent = Intent(ACTION_SLEEP_DATA)
             Log.i(TAG, "Sleep pending intent created")
             return PendingIntent.getBroadcast(
                 context,

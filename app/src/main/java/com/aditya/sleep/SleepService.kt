@@ -19,6 +19,7 @@ import android.Manifest
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.media.metrics.LogSessionId
 import android.os.Build
@@ -26,18 +27,24 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import com.aditya.sleep.SleepApplication.Companion.ACTION_SLEEP_DATA
 import com.aditya.sleep.SleepApplication.Companion.CHANNEL_ID
 import com.google.android.gms.location.ActivityRecognition
 import com.google.android.gms.location.SleepSegmentRequest
 
 private const val TAG = "SleepService"
 class SleepService : Service() {
+    private lateinit var receiver: SleepReceiver
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
 
     override fun onCreate() {
         super.onCreate()
+        val filter = IntentFilter()
+        filter.addAction(ACTION_SLEEP_DATA)
+         receiver = SleepReceiver()
+        registerReceiver(receiver, filter)
         registerForSleepUpdates()
     }
 
@@ -75,15 +82,18 @@ class SleepService : Service() {
         return START_STICKY
     }
 
-    private fun getPendingIntent(): PendingIntent {
-        val intent = Intent(this, MainActivity::class.java)
-        return PendingIntent.getActivity(this, 87632, intent, PendingIntent.FLAG_IMMUTABLE)
-    }
+//    private fun getPendingIntent(): PendingIntent {
+//        val intent = Intent(this, MainActivity::class.java)
+//        return PendingIntent.getActivity(this, 87632, intent, PendingIntent.FLAG_IMMUTABLE)
+//    }
 
     override fun onDestroy() {
         super.onDestroy()
         ActivityRecognition.getClient(this)
             .removeSleepSegmentUpdates(SleepApplication.createSleepPendingIntent(this))
+            .addOnSuccessListener {
+                unregisterReceiver(receiver)
+            }
         Log.i(TAG, "Sleep data collection removed.")
     }
 }
